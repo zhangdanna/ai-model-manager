@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model AIModel {
+  id        String   @id @default(cuid())
+  name      String
+  provider  String
+  endpoint  String   @default("")
+  apiKey    String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
