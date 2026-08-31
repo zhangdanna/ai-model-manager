@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getSession } from "@/lib/auth";
 
 // Server Action：创建模型
 export async function createModel(data: {
@@ -10,6 +11,9 @@ export async function createModel(data: {
   endpoint: string;
   apiKey: string;
 }) {
+  const session = await getSession();
+  if (!session) return { error: "未登录" };
+
   if (!data.name || !data.provider) {
     return { error: "name 和 provider 为必填项" };
   }
@@ -21,12 +25,11 @@ export async function createModel(data: {
         provider: data.provider,
         endpoint: data.endpoint || "",
         apiKey: data.apiKey || "",
+        userId: session.id,
       },
     });
 
-    // 刷新页面缓存，让列表重新获取数据
     revalidatePath("/models");
-
     return { success: true };
   } catch (error) {
     console.error("createModel error:", error);
@@ -34,9 +37,16 @@ export async function createModel(data: {
   }
 }
 
-// Server Action：删除模型
+// Server Action：删除模型（仅限自己的模型）
 export async function deleteModel(id: string) {
+  const session = await getSession();
+  if (!session) return { error: "未登录" };
+
   try {
+    const model = await prisma.aIModel.findUnique({ where: { id } });
+    if (!model) return { error: "模型不存在" };
+    if (model.userId !== session.id) return { error: "无权操作" };
+
     await prisma.aIModel.delete({ where: { id } });
     revalidatePath("/models");
     return { success: true };

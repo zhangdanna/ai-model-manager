@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 
-// GET /api/models — 获取所有模型
+// GET /api/models — 获取当前用户的模型
 export async function GET() {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "未登录" }, { status: 401 });
+    }
+
     const models = await prisma.aIModel.findMany({
+      where: { userId: session.id },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(models);
@@ -20,6 +27,11 @@ export async function GET() {
 // POST /api/models — 创建新模型
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: "未登录" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { name, provider, endpoint, apiKey } = body;
 
@@ -36,6 +48,7 @@ export async function POST(request: Request) {
         provider,
         endpoint: endpoint || "",
         apiKey: apiKey || "",
+        userId: session.id,
       },
     });
 

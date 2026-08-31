@@ -1,5 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+
+// 获取当前用户，并验证模型所有权
+async function getModelAndVerifyOwnership(id: string) {
+  const session = await getSession();
+  if (!session) return { error: "未登录", status: 401 };
+
+  const model = await prisma.aIModel.findUnique({ where: { id } });
+  if (!model) return { error: "模型不存在", status: 404 };
+  if (model.userId !== session.id) return { error: "无权操作", status: 403 };
+
+  return { model };
+}
 
 // GET /api/models/[id] — 获取单个模型
 export async function GET(
@@ -8,13 +21,11 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const model = await prisma.aIModel.findUnique({ where: { id } });
-
-    if (!model) {
-      return NextResponse.json({ error: "模型不存在" }, { status: 404 });
+    const result = await getModelAndVerifyOwnership(id);
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
     }
-
-    return NextResponse.json(model);
+    return NextResponse.json(result.model);
   } catch (error) {
     console.error("GET /api/models/[id] error:", error);
     return NextResponse.json({ error: "获取模型失败" }, { status: 500 });
@@ -28,14 +39,13 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
+    const result = await getModelAndVerifyOwnership(id);
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
+    }
+
     const body = await request.json();
     const { name, provider, endpoint, apiKey } = body;
-
-    // 先检查是否存在
-    const existing = await prisma.aIModel.findUnique({ where: { id } });
-    if (!existing) {
-      return NextResponse.json({ error: "模型不存在" }, { status: 404 });
-    }
 
     const model = await prisma.aIModel.update({
       where: { id },
@@ -61,10 +71,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-
-    const existing = await prisma.aIModel.findUnique({ where: { id } });
-    if (!existing) {
-      return NextResponse.json({ error: "模型不存在" }, { status: 404 });
+    const result = await getModelAndVerifyOwnership(id);
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
     }
 
     await prisma.aIModel.delete({ where: { id } });

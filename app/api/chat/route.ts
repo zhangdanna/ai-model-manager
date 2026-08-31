@@ -1,8 +1,15 @@
 import { streamText, createTextStreamResponse } from "ai";
 import { createProviderForModel } from "@/lib/ai-service";
+import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return Response.json({ error: "未登录" }, { status: 401 });
+    }
+
     const { modelId, messages } = await request.json();
 
     if (!modelId || !messages) {
@@ -10,6 +17,15 @@ export async function POST(request: Request) {
         { error: "modelId 和 messages 为必填项" },
         { status: 400 }
       );
+    }
+
+    // 验证模型所有权
+    const model = await prisma.aIModel.findUnique({ where: { id: modelId } });
+    if (!model) {
+      return Response.json({ error: "模型不存在" }, { status: 404 });
+    }
+    if (model.userId !== session.id) {
+      return Response.json({ error: "无权使用该模型" }, { status: 403 });
     }
 
     const { provider, modelName } = await createProviderForModel(modelId);

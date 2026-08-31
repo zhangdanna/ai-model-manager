@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+
+interface SidebarProps {
+  user: { name: string; email: string } | null;
+}
 
 const navItems = [
   { href: "/", label: "首页", icon: HomeIcon },
@@ -9,8 +13,15 @@ const navItems = [
   { href: "/arena", label: "模型对战", icon: ArenaIcon },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <aside className="w-56 border-r border-zinc-200 dark:border-zinc-800 flex flex-col shrink-0">
@@ -43,8 +54,29 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* 底部 */}
-      <div className="p-3 border-t border-zinc-200 dark:border-zinc-800">
+      {/* 底部：用户信息 */}
+      <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
+        {user ? (
+          <>
+            <div className="px-1">
+              <p className="text-sm font-medium truncate">{user.name}</p>
+              <p className="text-xs text-zinc-400 truncate">{user.email}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full text-left px-3 py-1.5 rounded-lg text-xs text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              退出登录
+            </button>
+          </>
+        ) : (
+          <Link
+            href="/login"
+            className="block text-center px-3 py-2 rounded-lg text-sm bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          >
+            登录
+          </Link>
+        )}
         <p className="text-xs text-zinc-400">Next.js 全栈练习项目</p>
       </div>
     </aside>
