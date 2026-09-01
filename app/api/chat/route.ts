@@ -28,9 +28,9 @@ export async function POST(request: Request) {
       return Response.json({ error: "无权使用该模型" }, { status: 403 });
     }
 
-    const { provider, modelName } = await createProviderForModel(modelId);
+    const { provider } = await createProviderForModel(modelId);
 
-    const result = streamText({
+    const result = await streamText({
       model: provider,
       messages,
     });

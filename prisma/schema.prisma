@@ -15,16 +15,34 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   models    AIModel[]
+  battles   Battle[]
 }
 
 model AIModel {
+  id          String    @id @default(cuid())
+  name        String
+  modelId     String    @default("")
+  provider    String
+  endpoint    String    @default("")
+  apiKey      String    @default("")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  battlesAsA  Battle[]  @relation("BattleModelA")
+  battlesAsB  Battle[]  @relation("BattleModelB")
+}
+
+model Battle {
   id        String   @id @default(cuid())
-  name      String
-  provider  String
-  endpoint  String   @default("")
-  apiKey    String   @default("")
+  prompt    String   @db.Text
+  modelAId  String
+  modelBId  String
+  modelA    AIModel  @relation("BattleModelA", fields: [modelAId], references: [id])
+  modelB    AIModel  @relation("BattleModelB", fields: [modelBId], references: [id])
+  resultA   String   @db.LongText
+  resultB   String   @db.LongText
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
   userId    String
   user      User     @relation(fields: [userId], references: [id])
 }

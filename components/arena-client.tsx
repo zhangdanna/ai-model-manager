@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { AIModel } from "@/lib/types";
+import { saveBattle } from "@/lib/actions";
 
 /**
  * 流式调用 AI，逐块回调文本增量
@@ -95,11 +96,18 @@ export default function ArenaClient() {
     setStreamingA(true);
     setStreamingB(true);
 
+    // 本地累积文本，用于最终保存
+    let textA = "";
+    let textB = "";
+
     // 并行调用两个模型
     const callA = streamChat(
       modelA,
       prompt,
-      (text) => setResultA((prev) => prev + text),
+      (text) => {
+        textA += text;
+        setResultA((prev) => prev + text);
+      },
       controller.signal
     ).catch((err) => {
       if (err.name !== "AbortError") {
@@ -110,7 +118,10 @@ export default function ArenaClient() {
     const callB = streamChat(
       modelB,
       prompt,
-      (text) => setResultB((prev) => prev + text),
+      (text) => {
+        textB += text;
+        setResultB((prev) => prev + text);
+      },
       controller.signal
     ).catch((err) => {
       if (err.name !== "AbortError") {
@@ -119,6 +130,17 @@ export default function ArenaClient() {
     }).finally(() => setStreamingB(false));
 
     await Promise.all([callA, callB]);
+
+    // 对战完成后保存记录（使用本地累积的文本）
+    if (!controller.signal.aborted) {
+      saveBattle({
+        prompt: prompt.trim(),
+        modelAId: modelA,
+        modelBId: modelB,
+        resultA: textA,
+        resultB: textB,
+      }).catch((err) => console.error("保存对战记录失败:", err));
+    }
   };
 
   const handleStop = () => {
