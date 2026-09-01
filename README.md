@@ -122,6 +122,12 @@ ai-model-manager/
 │   └── types.ts                    # 共享类型定义
 │
 ├── proxy.ts                        # 路由保护中间件
+├── vitest.config.ts                # Vitest 测试配置
+├── vercel.json                     # Vercel 部署配置
+├── tests/                          # 单元测试
+│   ├── auth.test.ts                # 密码哈希/验证测试
+│   ├── types.test.ts               # 类型定义测试
+│   └── ai-service.test.ts          # AI Provider 测试
 ├── prisma/
 │   ├── schema.prisma               # 数据模型
 │   └── migrations/                 # 迁移文件
@@ -237,5 +243,35 @@ ai-model-manager/
 
 - [x] 阶段五：进阶功能（多轮对话、对战记录管理、看板统计）
 
-- [ ] 阶段六：测试与部署（Vitest、Vercel 部署）
+- [x] 阶段六：测试与部署（Vitest、Vercel 部署）
 
+## 测试
+
+```bash
+# 运行全部测试
+npm test
+ 
+# 监听模式（开发时使用）
+npm run test:watch
+```
+
+测试覆盖：
+
+| 模块      | 测试文件                       | 测试数 |
+| ------- | -------------------------- | --- |
+| 密码哈希/验证 | `tests/auth.test.ts`       | 4   |
+| 类型定义    | `tests/types.test.ts`      | 3   |
+| AI 服务   | `tests/ai-service.test.ts` | 3   |
+
+## Vercel 部署
+
+1. 将项目推送到 GitHub
+2. 在 [Vercel](https://vercel.com) 导入仓库
+3. 配置环境变量：
+
+   - `DATABASE_URL` — MySQL 连接字符串（推荐使用 [PlanetScale](https://planetscale.com) 或 [Aiven](https://aiven.io) 的 MySQL）
+
+   - `AUTH_SECRET` — 至少 32 字符的随机字符串
+4. 部署
+
+项目已配置 `vercel.json`，构建时会自动执行 `prisma generate` 和 `prisma db push`。

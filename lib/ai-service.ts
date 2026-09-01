@@ -30,7 +30,7 @@ export async function createProviderForModel(modelId: string) {
   return { provider, modelName };
 }
 
-function getDefaultEndpoint(provider: string): string {
+export function getDefaultEndpoint(provider: string): string {
   switch (provider) {
     case "deepseek":
       return "https://api.deepseek.com/v1";
