@@ -86,7 +86,7 @@ export default function ModelList({ models, onDelete, onEdit }: ModelListProps) 
               )}
               <div className="flex items-center gap-2">
                 <span className="text-zinc-400">API Key:</span>
-                <span className="font-mono text-xs">{model.apiKey ? "••••••••" : "未设置"}</span>
+                <span className="font-mono text-xs text-zinc-300">••••••••</span>
               </div>
               <div className="text-xs text-zinc-400">
                 创建于 {new Date(model.createdAt).toLocaleDateString("zh-CN")}

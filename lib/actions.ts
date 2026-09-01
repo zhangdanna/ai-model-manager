@@ -69,7 +69,7 @@ export async function updateModel(
         modelId: data.modelId || "",
         provider: data.provider,
         endpoint: data.endpoint || "",
-        apiKey: data.apiKey || "",
+        ...(data.apiKey ? { apiKey: data.apiKey } : {}),
       },
     });
 

@@ -4,7 +4,7 @@ export interface AIModel {
   modelId: string;
   provider: string;
   endpoint: string;
-  apiKey: string;
+  apiKey?: string; // 仅表单可用，API 不返回
   createdAt: string;
   updatedAt: string;
 }

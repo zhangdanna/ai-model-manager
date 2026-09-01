@@ -16,6 +16,10 @@ export default function BattleHistory({ battles }: BattleHistoryProps) {
   if (battleList.length === 0) return null;
 
   const handleDelete = async (id: string) => {
+    // 二次确认删除
+    if (!window.confirm("确认要删除这条对战记录吗？")) {
+      return;
+    }
     setDeleting(id);
     const result = await deleteBattle(id);
     setDeleting(null);

@@ -13,6 +13,16 @@ export async function GET() {
     const models = await prisma.aIModel.findMany({
       where: { userId: session.id },
       orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        modelId: true,
+        provider: true,
+        endpoint: true,
+        createdAt: true,
+        updatedAt: true,
+        // apiKey 不返回给客户端，仅在服务端使用
+      },
     });
     return NextResponse.json(models);
   } catch (error) {
@@ -52,7 +62,10 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(model, { status: 201 });
+    return NextResponse.json(
+      { id: model.id, name: model.name, modelId: model.modelId, provider: model.provider, endpoint: model.endpoint, createdAt: model.createdAt, updatedAt: model.updatedAt },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("POST /api/models error:", error);
     return NextResponse.json(

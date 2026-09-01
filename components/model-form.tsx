@@ -26,14 +26,14 @@ export default function ModelForm({
 
   const isEditing = !!editingModel;
 
-  // 编辑模式：回填数据
+  // 编辑模式：回填数据（不填充 apiKey，安全考虑）
   useEffect(() => {
     if (editingModel) {
       setName(editingModel.name);
-      setModelId(editingModel.modelId);
       setProvider(editingModel.provider);
       setEndpoint(editingModel.endpoint);
-      setApiKey(editingModel.apiKey);
+      // apiKey 不返回，编辑时若为空则保留原有 Key
+      setApiKey("");
       setShowForm(true);
     }
   }, [editingModel]);
