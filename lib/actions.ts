@@ -163,6 +163,25 @@ export async function appendBattleRound(
   }
 }
 
+// Server Action：删除对战记录（仅限自己的）
+export async function deleteBattle(id: string) {
+  const session = await getSession();
+  if (!session) return { error: "未登录" };
+
+  try {
+    const battle = await prisma.battle.findUnique({ where: { id } });
+    if (!battle) return { error: "对战记录不存在" };
+    if (battle.userId !== session.id) return { error: "无权操作" };
+
+    await prisma.battle.delete({ where: { id } });
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("deleteBattle error:", error);
+    return { error: "删除对战记录失败" };
+  }
+}
+
 // Server Action：删除模型（仅限自己的模型）
 export async function deleteModel(id: string) {
   const session = await getSession();

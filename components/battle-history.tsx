@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { deleteBattle } from "@/lib/actions";
 import type { BattleSummary } from "@/app/page";
 
 interface BattleHistoryProps {
@@ -9,17 +10,31 @@ interface BattleHistoryProps {
 
 export default function BattleHistory({ battles }: BattleHistoryProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [battleList, setBattleList] = useState(battles);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
-  if (battles.length === 0) return null;
+  if (battleList.length === 0) return null;
+
+  const handleDelete = async (id: string) => {
+    setDeleting(id);
+    const result = await deleteBattle(id);
+    setDeleting(null);
+
+    if (result.success) {
+      setBattleList((prev) => prev.filter((b) => b.id !== id));
+      if (expandedId === id) setExpandedId(null);
+    }
+  };
 
   return (
     <div className="w-full max-w-3xl">
       <h3 className="text-sm font-medium text-zinc-500 mb-3">最近对战</h3>
       <div className="space-y-2">
-        {battles.map((b) => {
+        {battleList.map((b) => {
           const isExpanded = expandedId === b.id;
           const rounds = b.rounds ?? [];
           const roundCount = rounds.length;
+          const isDeleting = deleting === b.id;
 
           return (
             <div
@@ -27,60 +42,95 @@ export default function BattleHistory({ battles }: BattleHistoryProps) {
               className="rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden"
             >
               {/* 摘要行 */}
-              <button
-                onClick={() => setExpandedId(isExpanded ? null : b.id)}
-                className="w-full px-4 py-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate">
-                      {b.modelA.name} vs {b.modelB.name}
-                    </span>
-                    {roundCount > 1 && (
-                      <span className="shrink-0 text-xs rounded-full bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 text-zinc-500">
-                        {roundCount} 轮
+              <div className="flex items-stretch">
+                <button
+                  onClick={() => setExpandedId(isExpanded ? null : b.id)}
+                  className="flex-1 px-4 py-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300 truncate">
+                        {b.modelA.name} vs {b.modelB.name}
                       </span>
-                    )}
+                      {roundCount > 1 && (
+                        <span className="shrink-0 text-xs rounded-full bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 text-zinc-500">
+                          {roundCount} 轮
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-4">
+                      <span className="text-xs text-zinc-400">
+                        {new Date(b.createdAt).toLocaleString("zh-CN")}
+                      </span>
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className={`text-zinc-400 transition-transform ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-4">
-                    <span className="text-xs text-zinc-400">
-                      {new Date(b.createdAt).toLocaleString("zh-CN")}
-                    </span>
+                  <p className="text-xs text-zinc-500 truncate mt-1">
+                    {b.prompt.length > 80
+                      ? b.prompt.slice(0, 80) + "..."
+                      : b.prompt}
+                  </p>
+                </button>
+
+                {/* 删除按钮 */}
+                <button
+                  onClick={() => handleDelete(b.id)}
+                  disabled={isDeleting}
+                  className="px-3 text-zinc-300 hover:text-red-500 dark:text-zinc-600 dark:hover:text-red-400 transition-colors disabled:opacity-50"
+                  title="删除此对战记录"
+                >
+                  {isDeleting ? (
                     <svg
-                      width="12"
-                      height="12"
+                      width="14"
+                      height="14"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      className={`text-zinc-400 transition-transform ${
-                        isExpanded ? "rotate-180" : ""
-                      }`}
+                      className="animate-spin"
                     >
-                      <polyline points="6 9 12 15 18 9" />
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                     </svg>
-                  </div>
-                </div>
-                <p className="text-xs text-zinc-500 truncate mt-1">
-                  {b.prompt.length > 80
-                    ? b.prompt.slice(0, 80) + "..."
-                    : b.prompt}
-                </p>
-              </button>
+                  ) : (
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                  )}
+                </button>
+              </div>
 
               {/* 展开详情 */}
               {isExpanded && (
                 <div className="border-t border-zinc-100 dark:border-zinc-800 px-4 py-4 space-y-6 bg-zinc-50/50 dark:bg-zinc-900/50">
                   {rounds.map((round, i) => (
                     <div key={i} className="space-y-3">
-                      {/* 轮次标题 */}
                       {rounds.length > 1 && (
                         <div className="text-xs font-medium text-zinc-400">
                           第 {i + 1} 轮
                         </div>
                       )}
-
-                      {/* 用户消息 */}
                       <div className="flex justify-end">
                         <div className="max-w-[85%] rounded-xl bg-zinc-100 dark:bg-zinc-800 px-4 py-2.5">
                           <p className="text-sm whitespace-pre-wrap break-words">
@@ -88,8 +138,6 @@ export default function BattleHistory({ battles }: BattleHistoryProps) {
                           </p>
                         </div>
                       </div>
-
-                      {/* 模型响应 */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-950">
                           <div className="text-xs font-semibold text-zinc-500 mb-1.5">
@@ -110,7 +158,6 @@ export default function BattleHistory({ battles }: BattleHistoryProps) {
                       </div>
                     </div>
                   ))}
-
                   {rounds.length === 0 && (
                     <p className="text-sm text-zinc-400 text-center py-2">
                       暂无对话详情
