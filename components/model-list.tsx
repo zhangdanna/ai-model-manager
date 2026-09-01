@@ -78,6 +78,12 @@ export default function ModelList({ models, onDelete, onEdit }: ModelListProps) 
 
             {/* 基本信息 */}
             <div className="space-y-1 text-sm text-zinc-500">
+              {model.modelId && (
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-400">Model:</span>
+                  <span className="font-mono text-xs">{model.modelId}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <span className="text-zinc-400">API Key:</span>
                 <span className="font-mono text-xs">{model.apiKey ? "••••••••" : "未设置"}</span>
@@ -97,7 +103,7 @@ export default function ModelList({ models, onDelete, onEdit }: ModelListProps) 
                   </div>
                 )}
                 <div>
-                  <span className="text-zinc-400">ID:</span>
+                  <span className="text-zinc-400">数据库 ID:</span>
                   <p className="font-mono text-xs break-all mt-0.5">{model.id}</p>
                 </div>
                 <div>

@@ -1,6 +1,22 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import BattleHistory from "@/components/battle-history";
+
+export interface BattleRound {
+  prompt: string;
+  responseA: string;
+  responseB: string;
+}
+
+export interface BattleSummary {
+  id: string;
+  prompt: string;
+  createdAt: Date;
+  modelA: { name: string };
+  modelB: { name: string };
+  rounds: BattleRound[];
+}
 
 export default async function HomePage() {
   const session = await getSession();
@@ -9,13 +25,7 @@ export default async function HomePage() {
   let battleCount = 0;
   let todayBattles = 0;
   let providerDistribution: { provider: string; count: number }[] = [];
-  let recentBattles: {
-    id: string;
-    prompt: string;
-    createdAt: Date;
-    modelA: { name: string };
-    modelB: { name: string };
-  }[] = [];
+  let recentBattles: BattleSummary[] = [];
 
   if (session) {
     const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
@@ -46,10 +56,16 @@ export default async function HomePage() {
             id: true,
             prompt: true,
             createdAt: true,
+            rounds: true,
             modelA: { select: { name: true } },
             modelB: { select: { name: true } },
           },
-        }),
+        }).then((battles) =>
+          battles.map((b) => ({
+            ...b,
+            rounds: (b.rounds as unknown as BattleRound[]) ?? [],
+          }))
+        ),
       ]);
   }
 
@@ -122,35 +138,7 @@ export default async function HomePage() {
       )}
 
       {/* 最近对战 */}
-      {recentBattles.length > 0 && (
-        <div className="w-full max-w-3xl">
-          <h3 className="text-sm font-medium text-zinc-500 mb-3">
-            最近对战
-          </h3>
-          <div className="space-y-2">
-            {recentBattles.map((b) => (
-              <div
-                key={b.id}
-                className="rounded-lg border border-zinc-200 dark:border-zinc-800 px-4 py-3 space-y-1.5"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    {b.modelA.name} vs {b.modelB.name}
-                  </span>
-                  <span className="text-xs text-zinc-400 shrink-0 ml-4">
-                    {new Date(b.createdAt).toLocaleString("zh-CN")}
-                  </span>
-                </div>
-                <p className="text-xs text-zinc-500 truncate">
-                  {b.prompt.length > 80
-                    ? b.prompt.slice(0, 80) + "..."
-                    : b.prompt}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <BattleHistory battles={recentBattles} />
     </div>
   );
 }

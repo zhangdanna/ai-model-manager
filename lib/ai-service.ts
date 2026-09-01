@@ -20,12 +20,14 @@ export async function createProviderForModel(modelId: string) {
 
   const baseURL = model.endpoint || getDefaultEndpoint(model.provider);
 
+  const modelName = model.modelId || model.name;
+
   const provider = createOpenAI({
     apiKey: model.apiKey,
     baseURL,
-  })(model.name);
+  })(modelName);
 
-  return { provider, modelName: model.name };
+  return { provider, modelName };
 }
 
 function getDefaultEndpoint(provider: string): string {

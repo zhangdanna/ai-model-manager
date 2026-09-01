@@ -42,6 +42,7 @@ model Battle {
   modelB    AIModel  @relation("BattleModelB", fields: [modelBId], references: [id])
   resultA   String   @db.LongText
   resultB   String   @db.LongText
+  rounds    Json     @default("[]")
   createdAt DateTime @default(now())
   userId    String
   user      User     @relation(fields: [userId], references: [id])

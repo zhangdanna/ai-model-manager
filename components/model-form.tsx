@@ -17,6 +17,7 @@ export default function ModelForm({
   onCancelEdit,
 }: ModelFormProps) {
   const [name, setName] = useState("");
+  const [modelId, setModelId] = useState("");
   const [provider, setProvider] = useState("openai");
   const [endpoint, setEndpoint] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -29,6 +30,7 @@ export default function ModelForm({
   useEffect(() => {
     if (editingModel) {
       setName(editingModel.name);
+      setModelId(editingModel.modelId);
       setProvider(editingModel.provider);
       setEndpoint(editingModel.endpoint);
       setApiKey(editingModel.apiKey);
@@ -45,6 +47,7 @@ export default function ModelForm({
       if (isEditing) {
         const result = await updateModel(editingModel!.id, {
           name: name.trim(),
+          modelId: modelId.trim(),
           provider,
           endpoint: endpoint.trim(),
           apiKey: apiKey.trim(),
@@ -56,6 +59,7 @@ export default function ModelForm({
       } else {
         const result = await createModel({
           name: name.trim(),
+          modelId: modelId.trim(),
           provider,
           endpoint: endpoint.trim(),
           apiKey: apiKey.trim(),
@@ -77,6 +81,7 @@ export default function ModelForm({
 
   const resetForm = () => {
     setName("");
+    setModelId("");
     setProvider("openai");
     setEndpoint("");
     setApiKey("");
@@ -121,9 +126,25 @@ export default function ModelForm({
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="例如：GPT-4o"
+          placeholder="例如：GPT-4o 正式版"
           className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-foreground"
           required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1.5">
+          Model ID
+          <span className="text-zinc-400 font-normal ml-1">
+            (API 模型标识，如 gpt-4o)
+          </span>
+        </label>
+        <input
+          type="text"
+          value={modelId}
+          onChange={(e) => setModelId(e.target.value)}
+          placeholder="gpt-4o / deepseek-chat"
+          className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-foreground"
         />
       </div>
 

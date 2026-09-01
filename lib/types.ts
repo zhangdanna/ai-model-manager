@@ -1,6 +1,7 @@
 export interface AIModel {
   id: string;
   name: string;
+  modelId: string;
   provider: string;
   endpoint: string;
   apiKey: string;
