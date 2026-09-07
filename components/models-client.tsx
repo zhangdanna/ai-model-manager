@@ -12,7 +12,7 @@ export default function ModelsClient() {
   const [editingModel, setEditingModel] = useState<AIModel | null>(null);
 
   // 获取模型列表
-  const fetchModels = useCallback(async () => {
+  const fetchModels = async () => {
     try {
       const res = await fetch("/api/models");
       if (!res.ok) throw new Error("获取失败");
@@ -23,11 +23,13 @@ export default function ModelsClient() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }
 
   useEffect(() => {
-    fetchModels();
-  }, [fetchModels]);
+    (async () => {
+      await fetchModels();
+    })();
+  }, []);
 
   // 删除模型（Server Action）
   const handleDelete = async (id: string) => {

@@ -9,6 +9,7 @@ Next.js 全栈 + AI 调用学习项目。配置多个 AI 模型，发送 Prompt 
 | 框架     | Next.js (App Router)  | 16.3.3    |
 | 语言     | TypeScript            | 5.x       |
 | 样式     | Tailwind CSS          | 4.x       |
+| 组件库    | shadcn/ui (v4)        | latest    |
 | 数据库    | MySQL + Prisma        | 5.22.0    |
 | AI SDK | Vercel AI SDK (v7)    | 5.x       |
 | 认证     | JWT (jose + bcryptjs) | -         |
@@ -33,6 +34,46 @@ npm run dev
 ```
 
 打开 <http://localhost:3000> 查看效果。
+
+## 组件库
+
+本项目使用 **shadcn/ui v4**，它与传统 npm 组件库（如 antd、MUI）的工作方式完全不同：
+
+### 架构
+
+```
+shadcn/ui v4（组件管理 CLI）
+  └── @base-ui/react（headless 原语，提供无障碍 / 交互逻辑）
+  └── Tailwind CSS v4（样式层）
+```
+
+shadcn 不是 npm 包，而是**代码分发工具**。`npx shadcn add <组件名>` 会从在线模板仓库下载源码，直接写入你项目的 `components/ui/` 目录。源码归你所有，随时可以修改。
+
+### 安装组件
+
+```bash
+# 初始化（仅首次）
+npx shadcn@latest init
+
+# 添加组件
+npx shadcn add button table dialog input label  
+
+# 版本升级
+npx shadcn add button --overwrite
+```
+
+### 新增组件
+
+```bash
+# 浏览所有可用组件：https://ui.shadcn.com/docs/components
+# 添加组件
+npx shadcn add <组件名>
+
+# 例如：添加 Select 下拉框
+npx shadcn add select
+```
+
+添加后直接 `import { Select } from "@/components/ui/select"` 即可使用。
 
 ## 环境变量
 
@@ -106,11 +147,19 @@ ai-model-manager/
 │           └── logout/route.ts     # POST — 登出
 │
 ├── components/                     # React 组件
+│   ├── ui/                         # shadcn/ui 组件（你的源码）
+│   │   ├── button.tsx              # 按钮
+│   │   ├── table.tsx               # 表格
+│   │   ├── dialog.tsx              # 弹窗
+│   │   ├── input.tsx               # 输入框
+│   │   ├── label.tsx               # 标签
+│   │   └── card.tsx                # 卡片
 │   ├── sidebar.tsx                 # 侧边栏导航
 │   ├── arena-client.tsx            # 模型对战（多轮对话 + 流式对比）
 │   ├── models-client.tsx           # 模型管理客户端逻辑
 │   ├── model-form.tsx              # 模型表单（创建 / 编辑）
 │   ├── model-list.tsx              # 模型卡片列表
+│   ├── user-client.tsx             # 用户管理（列表 + 修改密码）
 │   ├── auth-form.tsx               # 登录 / 注册表单
 │   └── battle-history.tsx          # 对战记录（展开详情 + 删除）
 │
@@ -133,6 +182,7 @@ ai-model-manager/
 │   └── migrations/                 # 迁移文件
 │
 ├── .env                            # 环境变量
+├── components.json                 # shadcn/ui 配置
 ├── next.config.mjs                 # Next.js 配置
 ├── tsconfig.json                   # TypeScript 配置
 └── package.json
@@ -146,12 +196,14 @@ ai-model-manager/
 | `app/page.tsx`                  | Server | 纯展示 + 数据查询                  |
 | `app/models/page.tsx`           | Server | 渲染 Client Component         |
 | `app/arena/page.tsx`            | Server | 渲染 Client Component         |
-| `app/login/page.tsx`            | Client | 登录表单交互                      |
+| `app/login/page.tsx`            | Server | 渲染 AuthForm Client Component |
 | `components/sidebar.tsx`        | Client | `usePathname()`             |
 | `components/models-client.tsx`  | Client | `useState`、`useEffect`      |
 | `components/model-form.tsx`     | Client | 表单交互（`onChange`、`onSubmit`） |
 | `components/arena-client.tsx`   | Client | 流式读取、多轮对话状态管理               |
 | `components/battle-history.tsx` | Client | 展开/折叠、删除交互                  |
+| `components/user-client.tsx`    | Client | 用户列表 + 修改密码弹窗               |
+| `components/ui/*.tsx`           | Client | shadcn/ui 组件（`@base-ui/react` 需要浏览器 API） |
 | `components/auth-form.tsx`      | Client | 登录/注册表单交互                   |
 
 ## 数据库

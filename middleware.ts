@@ -6,7 +6,7 @@ const SECRET = new TextEncoder().encode(process.env.AUTH_SECRET);
 const COOKIE_NAME = "auth-token";
 
 // 需要登录才能访问的路径
-const PROTECTED_PATHS = ["/models", "/arena", "/api/models", "/api/chat"];
+const PROTECTED_PATHS = ["/models", "/arena", "/users", "/api/models", "/api/chat", "/api/users"];
 
 // 公开路径（不需要登录）
 const PUBLIC_AUTH_PATHS = ["/api/auth/login", "/api/auth/register"];
@@ -49,8 +49,10 @@ export const config = {
   matcher: [
     "/models/:path*",
     "/arena/:path*",
+    "/users/:path*",
     "/api/models/:path*",
     "/api/chat/:path*",
+    "/api/users/:path*",
     "/api/auth/:path*",
   ],
 };
